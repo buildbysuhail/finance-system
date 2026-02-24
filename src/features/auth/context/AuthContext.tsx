@@ -33,8 +33,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [state.user])
 
   const login = (_email: string, _password: string) => {
-    setState({ user: MOCK_USER, isAuthenticated: true })
-  }
+  const user = { ...MOCK_USER, email: _email }
+  setState({ user, isAuthenticated: true })
+}
 
   const logout = () => {
     setState({ user: null, isAuthenticated: false })
