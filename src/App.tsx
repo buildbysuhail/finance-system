@@ -1,18 +1,31 @@
-// import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from '@/features/auth/context/AuthContext'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { LoginPage } from '@/pages/LoginPage'
+import { DashboardPage } from '@/pages/DashboardPage'
+import { CategoriesPage } from '@/pages/CategoriesPage'
 
-import Dashboard from "./features/dashboard/pages/Dashboard"
-
-// import './App.css'
-
-function App() {
-  // const [count, setCount] = useState(0)
-
-  return (
-    <>
-     Code goes here
-     <Dashboard />
-    </>
-  )
-}
+export const App = () => (
+  <BrowserRouter>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
+  </BrowserRouter>
+)
 
 export default App
