@@ -13,6 +13,7 @@ import type { Transaction } from "@/services/transactionService";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useToast } from "@/context/ToastContext";
+// import { Button } from "@/components/ui/Button";
 
 export const TransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -180,7 +181,7 @@ export const TransactionsPage = () => {
         )}
       </div>
 
-      {/* ✅ COMMON MODAL */}
+      {/*  COMMON MODAL */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -194,7 +195,7 @@ export const TransactionsPage = () => {
             <input
               placeholder="Title"
               {...register("title", { required: "Title is required" })}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
             {errors.title && (
               <p className="text-red-500 text-sm mt-1">
@@ -212,14 +213,14 @@ export const TransactionsPage = () => {
                 valueAsNumber: true,
                 min: { value: 1, message: "Amount must be greater than 0" },
               })}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
           <div>
             <select
               {...register("type", { required: "Type is required" })}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">Select Type</option>
               <option value="income">Income</option>
@@ -231,7 +232,7 @@ export const TransactionsPage = () => {
             <input
               type="date"
               {...register("date", { required: "Date is required" })}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
@@ -241,7 +242,7 @@ export const TransactionsPage = () => {
               {...register("categoryId", {
                 required: "Category is required",
               })}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
@@ -249,7 +250,7 @@ export const TransactionsPage = () => {
             <textarea
               placeholder="Description"
               {...register("description")}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
@@ -257,14 +258,15 @@ export const TransactionsPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="px-5 py-2 rounded-lg border"
+              className="px-5 py-2 rounded-sm border font-medium bg-red-100"
             >
               Cancel
             </button>
+            {/* <Button variant="danger" title= {"sdfsd"}/> */}
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-sm transition font-medium"
             >
               {editingId ? "Update" : "Add"}
             </button>

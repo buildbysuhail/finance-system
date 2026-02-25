@@ -40,7 +40,7 @@ export const Modal = ({
       />
 
       {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-lg w-full max-w-lg p-6 z-10">
+      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-lg p-6 z-10">
         {title && (
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">{title}</h2>

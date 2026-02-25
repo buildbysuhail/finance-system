@@ -11,6 +11,7 @@ import {
 } from "@/services/categoryService";
 
 import type { Category } from "@/services/categoryService";
+import { useToast } from "@/context/ToastContext";
 
 export const CategoriesPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -21,6 +22,9 @@ export const CategoriesPage = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const { register, handleSubmit, reset } = useForm<Category>();
+
+  const {showToast} = useToast();
+
 console.log(categories, "categoriesssss")
   const defaultCategories: Omit<Category, "id">[] = [
   { name: "Salary", type: "income" },
@@ -90,14 +94,16 @@ const expenseCategories = categories.filter(
     try {
       if (editingCategory?.id) {
         await updateCategory(editingCategory.id, data);
+        showToast("Category updated", "info", 2500)
       } else {
         await createCategory(data);
+        showToast("Category added", "success", 2500)
       }
-
+      
       setIsModalOpen(false);
       fetchCategories();
     } catch {
-      alert("Something went wrong");
+      showToast("Something went wrong", "warning", 2500);
     }
   };
 
@@ -171,8 +177,8 @@ const expenseCategories = categories.filter(
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white rounded-xl shadow p-6 w-96">
+        <div className="fixed inset-0 bg-black/40 bg-opacity-70 flex justify-center items-center">
+          <div className="bg-white rounded-lg shadow p-6 w-96">
             <h2 className="text-lg font-semibold mb-4">
               {editingCategory ? "Edit Category" : "Create Category"}
             </h2>
@@ -196,14 +202,14 @@ const expenseCategories = categories.filter(
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-600"
+                  className="px-4 py-2 text-gray-600 bg-red-100 rounded-sm font-medium hover:cursor-pointer"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-sm font-medium hover:cursor-pointer"
                 >
                   {editingCategory ? "Update" : "Create"}
                 </button>
