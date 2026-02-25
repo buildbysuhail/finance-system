@@ -12,15 +12,16 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { getTransactions, type Transaction } from "@/services/transactionService";
+import { getCategories, type Category } from "@/services/categoryService";
 import { calculateSummary } from "@/services/reportService";
 import { Calendar, Filter, TrendingUp, TrendingDown } from "lucide-react";
 
-// interface Summary {
-//   totalIncome: number;
-//   totalExpense: number;
-//   balance: number;
-//   transactionCount: number;
-// }
+interface Summary {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+  transactionCount: number;
+}
 
 interface MonthlySummary {
   month: string;
@@ -36,11 +37,21 @@ interface CategoryData {
   total: number;
 }
 
-// const COLORS_PIE = ["#10b981", "#ef4444"];
-// const COLORS_CHART = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#06b6d4"];
+interface PieData {
+  name: string;
+  value: number;
+  fill: string;
+}
+
+const EXPENSE_COLORS = ["#ef4444", "#f87171", "#fca5a5", "#fecaca", "#fee2e2"];
+const INCOME_COLORS = ["#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"];
+
+const COLORS_PIE = ["#10b981", "#ef4444"];
+const COLORS_CHART = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#06b6d4"];
 
 export const ReportsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedType, setSelectedType] = useState<"all" | "income" | "expense">(
@@ -50,8 +61,11 @@ export const ReportsPage = () => {
   useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const data: Transaction[] = await getTransactions();
-        setTransactions(data);
+        const transactionData: Transaction[] = await getTransactions();
+        const categoryData: Category[] = await getCategories();
+        
+        setTransactions(transactionData);
+        setCategories(categoryData);
 
         // Set default month to current month
         const now = new Date();
@@ -68,8 +82,14 @@ export const ReportsPage = () => {
 
     loadTransactions();
   }, []);
-
+console.log(transactions, "transactionsssssss")
   // Get available months from transactions
+  const getCategoryName = (categoryId?: string) => {
+    if (!categoryId) return "Uncategorized";
+    const category = categories.find(c => c.id === categoryId);
+    return category?.name || "Uncategorized";
+  };
+
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     transactions.forEach((t) => {
@@ -102,7 +122,7 @@ export const ReportsPage = () => {
   const filteredSummary = useMemo(() => {
     return calculateSummary(filteredTransactions);
   }, [filteredTransactions]);
-
+console.log(filteredTransactions, "filteredTransactionsss")
   // Calculate monthly summary data
   const monthlySummaryData = useMemo(() => {
     const monthMap = new Map<string, MonthlySummary>();
@@ -133,48 +153,47 @@ export const ReportsPage = () => {
     return Array.from(monthMap.values()).reverse().slice(0, 12);
   }, [transactions]);
 
-  // Calculate income vs expense pie data
-  const pieData = useMemo(() => {
-  const income = filteredTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const expense = filteredTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  return [
-    { name: "Income", value: income || 0, fill: "#10b981" },
-    { name: "Expense", value: expense || 0, fill: "#ef4444" },
-  ];
-}, [filteredTransactions]);
-
-  // Calculate category breakdown data
-  const categoryData = useMemo(() => {
-    const categoryMap = new Map<string, CategoryData>();
-
-    filteredTransactions.forEach((t) => {
-      const cat = t.categoryId || "Uncategorized";
-      const current = categoryMap.get(cat) || {
-        category: cat,
-        income: 0,
-        expense: 0,
-        total: 0,
+  // Calculate expense pie data (filtered by expense type, grouped by category)
+  const expensePieData = useMemo(() => {
+  const expenseMap = new Map<string, PieData>();
+  
+  transactions
+    .filter(t => t.type === "expense")
+    .forEach((t, index) => {
+      const catName = t.title;  // ← Use title instead
+      const current = expenseMap.get(catName) || {
+        name: catName,
+        value: 0,
+        fill: EXPENSE_COLORS[index % EXPENSE_COLORS.length]
       };
-
-      if (t.type === "income") {
-        current.income += t.amount;
-      } else {
-        current.expense += t.amount;
-      }
-      current.total = current.income + current.expense;
-      categoryMap.set(cat, current);
+      current.value += t.amount;
+      expenseMap.set(catName, current);
     });
+  
+  return Array.from(expenseMap.values());
+}, [transactions, categories]);
 
-    return Array.from(categoryMap.values())
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 8);
-  }, [filteredTransactions]);
+  // Calculate income pie data (filtered by income type, grouped by category)
+  const incomePieData = useMemo(() => {
+    const incomeMap = new Map<string, PieData>();
+    
+    transactions
+      .filter(t => t.type === "income")
+      .forEach((t, index) => {
+        const catName = t.title;
+        const current = incomeMap.get(catName) || {
+          name: catName,
+          value: 0,
+          fill: INCOME_COLORS[index % INCOME_COLORS.length]
+        };
+        current.value += t.amount;
+        incomeMap.set(catName, current);
+      });
+    
+    return Array.from(incomeMap.values());
+  }, [transactions, categories]);
+
+
 
   const getMonthLabel = (monthString: string) => {
     const [year, month] = monthString.split("-");
@@ -194,7 +213,7 @@ export const ReportsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -205,7 +224,7 @@ export const ReportsPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
             {/* Month Filter */}
             <div className="w-full sm:w-auto">
@@ -262,7 +281,7 @@ export const ReportsPage = () => {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Balance Card */}
-          <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-md p-6 text-white shadow-lg">
+          <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
             <p className="text-blue-100 text-sm font-medium mb-2">Net Balance</p>
             <p className="text-3xl font-bold">
               ₹ {filteredSummary.balance.toLocaleString("en-IN")}
@@ -273,7 +292,7 @@ export const ReportsPage = () => {
           </div>
 
           {/* Income Card */}
-          <div className="bg-white rounded-md p-6 shadow-sm border border-gray-200">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <p className="text-gray-600 text-sm font-medium">Total Income</p>
               <div className="p-2 bg-green-100 rounded-lg">
@@ -286,7 +305,7 @@ export const ReportsPage = () => {
           </div>
 
           {/* Expense Card */}
-          <div className="bg-white rounded-md p-6 shadow-sm border border-gray-200">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <p className="text-gray-600 text-sm font-medium">Total Expense</p>
               <div className="p-2 bg-red-100 rounded-lg">
@@ -301,24 +320,20 @@ export const ReportsPage = () => {
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Income vs Expense Pie Chart */}
-          <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+          {/* Expense Pie Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-6">
-              Income vs Expense
+              Expense Breakdown
             </h3>
-            {filteredTransactions.length === 0 ? (
+            {expensePieData.length === 0 ? (
               <div className="flex items-center justify-center h-80 text-gray-500">
-                <p>No data available for selected filters</p>
-              </div>
-            ) : pieData[0].value === 0 && pieData[1].value === 0 ? (
-              <div className="flex items-center justify-center h-80 text-gray-500">
-                <p>No transactions to display</p>
+                <p>No expense data available</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={pieData}
+                    data={expensePieData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -328,7 +343,6 @@ export const ReportsPage = () => {
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
-                    // colors={COLORS_PIE}
                   />
                   <Tooltip
                     formatter={(value) =>
@@ -340,53 +354,43 @@ export const ReportsPage = () => {
             )}
           </div>
 
-          {/* Category Breakdown Bar Chart */}
-          <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+          {/* Income Pie Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-6">
-              Spending by Category
+              Income Breakdown
             </h3>
-            {categoryData.length === 0 ? (
+            {incomePieData.length === 0 ? (
               <div className="flex items-center justify-center h-80 text-gray-500">
-                <p>No category data available</p>
+                <p>No income data available</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="category"
-                    tick={{ fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
+                <PieChart>
+                  <Pie
+                    data={incomePieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) =>
+                      `${name}: ₹${(value / 100000).toFixed(1)}L`
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
                   />
-                  <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
                     formatter={(value) =>
                       `₹ ${(value as number).toLocaleString("en-IN")}`
                     }
                   />
-                  <Legend />
-                  <Bar
-                    dataKey="income"
-                    fill="#10b981"
-                    radius={[8, 8, 0, 0]}
-                    name="Income"
-                  />
-                  <Bar
-                    dataKey="expense"
-                    fill="#ef4444"
-                    radius={[8, 8, 0, 0]}
-                    name="Expense"
-                  />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
 
         {/* Monthly Trend Chart */}
-        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-6">
             12-Month Trend
           </h3>

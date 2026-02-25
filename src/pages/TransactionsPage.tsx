@@ -13,11 +13,11 @@ import type { Transaction } from "@/services/transactionService";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useToast } from "@/context/ToastContext";
-// import { Button } from "@/components/ui/Button";
 
 export const TransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filterType, setFilterType] = useState<"all" | "income" | "expense">("all");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export const TransactionsPage = () => {
       const data = await getTransactions();
       setTransactions(data);
     } catch (error) {
-      console.error("Failed to load transactions", error);
+      // Error handling
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,9 @@ export const TransactionsPage = () => {
     reset();
   };
 
-
+  const filteredTransactions = transactions.filter((t) =>
+    filterType === "all" ? true : t.type === filterType
+  );
 
   const onSubmit = async (data: Omit<Transaction, "id">) => {
     try {
@@ -83,34 +85,33 @@ export const TransactionsPage = () => {
       closeModal();
       await loadTransactions();
     } catch (error) {
-      console.error("Error saving transaction", error);
+      // Error handling
     }
   };
 
- const handleDelete = async () => {
-  if (!deleteId) return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
 
-  try {
-    await deleteTransaction(deleteId);
-    await loadTransactions();
+    try {
+      await deleteTransaction(deleteId);
+      await loadTransactions();
+      showToast("Transaction deleted successfully", "success", 3000);
+    } catch (error) {
+      showToast("Failed to delete transaction", "error", 3000);
+    }
 
-    showToast("Transaction deleted successfully", "success", 3000);
-  } catch (error) {
-    showToast("Failed to delete transaction", "error", 3000);
-  }
-
-  setIsDeleteOpen(false);
-  setDeleteId(null);
-};
+    setIsDeleteOpen(false);
+    setDeleteId(null);
+  };
 
   return (
     <div className="space-y-8">
+      {/* Header with Add Button */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-800">Transactions</h1>
-
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition font-medium"
         >
           + Add Transaction
         </button>
@@ -118,10 +119,50 @@ export const TransactionsPage = () => {
 
       {/* TABLE CARD */}
       <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-100">
-        <h2 className="text-lg font-semibold mb-4">Transaction List</h2>
+        {/* Filter Buttons */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold">Transaction List</h2>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilterType("all")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                filterType === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              All Transactions
+            </button>
+            <button
+              onClick={() => setFilterType("income")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                filterType === "income"
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Income
+            </button>
+            <button
+              onClick={() => setFilterType("expense")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                filterType === "expense"
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Expense
+            </button>
+          </div>
+        </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <p className="text-gray-500">Loading...</p>
+        ) : filteredTransactions.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">
+            No transactions found
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -136,14 +177,14 @@ export const TransactionsPage = () => {
               </thead>
 
               <tbody>
-                {transactions.map((t) => (
+                {filteredTransactions.map((t) => (
                   <tr
                     key={t.id}
                     className="border-b hover:bg-gray-50 transition"
                   >
                     <td className="py-2">{t.title}</td>
 
-                    <td className="py-2 font-medium">₹{t.amount}</td>
+                    <td className="py-2 font-medium">₹{t.amount.toLocaleString("en-IN")}</td>
 
                     <td
                       className={`py-2 font-medium capitalize ${
@@ -181,7 +222,7 @@ export const TransactionsPage = () => {
         )}
       </div>
 
-      {/*  COMMON MODAL */}
+      {/* MODAL */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -215,6 +256,11 @@ export const TransactionsPage = () => {
               })}
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.amount && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.amount.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -226,6 +272,11 @@ export const TransactionsPage = () => {
               <option value="income">Income</option>
               <option value="expense">Expense</option>
             </select>
+            {errors.type && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.type.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -234,21 +285,16 @@ export const TransactionsPage = () => {
               {...register("date", { required: "Date is required" })}
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
-          </div>
-
-          <div>
-            <input
-              placeholder="Category ID"
-              {...register("categoryId", {
-                required: "Category is required",
-              })}
-              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            {errors.date && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.date.message}
+              </p>
+            )}
           </div>
 
           <div className="md:col-span-2">
             <textarea
-              placeholder="Description"
+              placeholder="Description (optional)"
               {...register("description")}
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
@@ -258,15 +304,15 @@ export const TransactionsPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="px-5 py-2 rounded-sm border font-medium bg-red-100"
+              className="px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition"
             >
               Cancel
             </button>
-            {/* <Button variant="danger" title= {"sdfsd"}/> */}
+            {/* <Button variant="danger" title= {"Cancel"}/> */}
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-sm transition font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium"
             >
               {editingId ? "Update" : "Add"}
             </button>
