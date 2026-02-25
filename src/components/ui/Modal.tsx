@@ -46,7 +46,7 @@ export const Modal = ({
             <h2 className="text-lg font-semibold">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-black"
+              className="text-gray-500 hover:text-black hover:cursor-pointer"
             >
               ✕
             </button>

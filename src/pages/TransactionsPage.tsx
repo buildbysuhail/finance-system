@@ -126,7 +126,7 @@ export const TransactionsPage = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setFilterType("all")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 filterType === "all"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -136,7 +136,7 @@ export const TransactionsPage = () => {
             </button>
             <button
               onClick={() => setFilterType("income")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 filterType === "income"
                   ? "bg-green-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -146,7 +146,7 @@ export const TransactionsPage = () => {
             </button>
             <button
               onClick={() => setFilterType("expense")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 filterType === "expense"
                   ? "bg-red-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -304,7 +304,7 @@ export const TransactionsPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition"
+              className="px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -312,7 +312,7 @@ export const TransactionsPage = () => {
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium cursor-pointer"
             >
               {editingId ? "Update" : "Add"}
             </button>

@@ -32,14 +32,14 @@ export const ConfirmModal = ({
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-gray-300"
+            className="px-4 py-2 rounded-md border text-black border-gray-300 hover:cursor-pointer"
           >
             {cancelText}
           </button>
 
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
+            className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white transition hover:cursor-pointer"
           >
             {confirmText}
           </button>

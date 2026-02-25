@@ -126,7 +126,7 @@ const expenseCategories = categories.filter(
 
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 hover:cursor-pointer transition"
         >
           + Add Category
         </button>
@@ -157,14 +157,14 @@ const expenseCategories = categories.filter(
                 <div className="space-x-3">
                   <button
                     onClick={() => openEditModal(cat)}
-                    className="text-blue-600 text-sm hover:underline"
+                    className="text-blue-600 text-sm hover:underline cursor-pointer"
                   >
                     Edit
                   </button>
 
                   <button
                     onClick={() => handleDelete(cat.id!)}
-                    className="text-red-600 text-sm hover:underline"
+                    className="text-red-600 text-sm hover:underline cursor-pointer"
                   >
                     Delete
                   </button>

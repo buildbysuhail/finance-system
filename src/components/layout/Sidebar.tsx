@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useState } from 'react'
+import { ConfirmModal } from '../ui/ConfirmModal'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -16,8 +18,9 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
+  const [logoutPopup, setLogoutPopup] = useState(false)
   const { user, logout } = useAuth()
-console.log(user, "userrrrrrrrrr")
+// console.log(isOpen, "isOpeeen")
   return (
     <aside
       className={`relative shrink-0 bg-gray-900 text-white flex flex-col h-screen transition-all duration-300 ${
@@ -34,7 +37,7 @@ console.log(user, "userrrrrrrrrr")
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 transition-colors shrink-0"
           aria-label="Toggle sidebar"
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -55,7 +58,7 @@ console.log(user, "userrrrrrrrrr")
               }`
             }
           >
-            <span className={`transition-all duration-300 ${isOpen ? '' : 'mx-auto'}`}>
+            <span className={`transition-all duration-300 ${isOpen ? '' : 'mx-auto'}`} title={`${!isOpen ? item.label : ''}`}>
               {item.label.charAt(0)}
             </span>
             {isOpen && <span>{item.label}</span>}
@@ -67,14 +70,14 @@ console.log(user, "userrrrrrrrrr")
       <div className="px-2 py-4 border-t border-gray-700 overflow-hidden">
         {isOpen ? (
           <button
-            onClick={logout}
+            onClick={()=>setLogoutPopup(true)}
             className="text-sm text-gray-400 hover:text-white transition-colors px-2"
           >
             Logout
           </button>
         ) : (
           <button
-            onClick={logout}
+            onClick={()=>setLogoutPopup(true)}
             className="w-full flex justify-center text-gray-400 hover:text-white transition-colors"
             title="Logout"
           >
@@ -82,6 +85,19 @@ console.log(user, "userrrrrrrrrr")
           </button>
         )}
       </div>
+      
+      <ConfirmModal
+        isOpen={logoutPopup}
+        title="Logout the user"
+        message="Are you sure you want to logout this account? This action cannot be undone."
+        confirmText="Yes"
+        cancelText="Cancel"
+        onConfirm={logout}
+        onCancel={() => {
+          setLogoutPopup(false);
+          // setDeleteId(null);
+        }}
+      />
     </aside>
   )
 }
