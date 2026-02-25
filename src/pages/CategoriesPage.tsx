@@ -66,13 +66,13 @@ console.log(categories, "categoriesssss")
   }
 };
 
-const incomeCategories = categories.filter(
-  (cat) => cat.type === "income"
-);
+// const incomeCategories = categories.filter(
+//   (cat) => cat.type === "income"
+// );
 
-const expenseCategories = categories.filter(
-  (cat) => cat.type === "expense"
-);
+// const expenseCategories = categories.filter(
+//   (cat) => cat.type === "expense"
+// );
 
   useEffect(() => {
     fetchCategories();
