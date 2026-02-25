@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getTransactions } from "@/services/transactionService";
 
 interface Summary {
   totalIncome: number;
@@ -21,54 +22,45 @@ export const DashboardPage = () => {
     balance: 0,
   });
 
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>(
-    []
-  );
-
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Temporary mock data (Replace with API later)
-    const mockTransactions: Transaction[] = [
-      {
-        id: "1",
-        title: "Salary",
-        amount: 50000,
-        type: "income",
-        date: "2026-02-01",
-      },
-      {
-        id: "2",
-        title: "Groceries",
-        amount: 2500,
-        type: "expense",
-        date: "2026-02-03",
-      },
-      {
-        id: "3",
-        title: "Electricity Bill",
-        amount: 1800,
-        type: "expense",
-        date: "2026-02-05",
-      },
-    ];
+    const loadDashboardData = async () => {
+      try {
+        const transactions: Transaction[] = await getTransactions();
 
-    const totalIncome = mockTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, curr) => acc + curr.amount, 0);
+        const totalIncome = transactions
+          .filter((t) => t.type === "income")
+          .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const totalExpense = mockTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((acc, curr) => acc + curr.amount, 0);
+        const totalExpense = transactions
+          .filter((t) => t.type === "expense")
+          .reduce((acc, curr) => acc + curr.amount, 0);
 
-    setSummary({
-      totalIncome,
-      totalExpense,
-      balance: totalIncome - totalExpense,
-    });
+        setSummary({
+          totalIncome,
+          totalExpense,
+          balance: totalIncome - totalExpense,
+        });
 
-    setRecentTransactions(mockTransactions);
-    setLoading(false);
+        // Sort by latest date (descending) and take latest 5
+        const sortedRecent = [...transactions]
+          .sort(
+            (a, b) =>
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+          )
+          .slice(0, 5);
+
+        setRecentTransactions(sortedRecent);
+      } catch (error) {
+        console.error("Failed to load dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
   }, []);
 
   if (loading) {
@@ -77,7 +69,6 @@ export const DashboardPage = () => {
 
   return (
     <div className="space-y-8">
-      {/* Page Title */}
       <h1 className="text-2xl font-semibold text-gray-800">
         Financial Overview
       </h1>
@@ -99,7 +90,7 @@ export const DashboardPage = () => {
         </div>
 
         <div className="bg-white shadow rounded-xl p-6">
-          <h2 className="text-sm text-gray-500">Balance</h2>
+          <h2 className="text-sm text-gray-500">Net Balance</h2>
           <p
             className={`text-2xl font-bold ${
               summary.balance >= 0 ? "text-blue-600" : "text-red-600"
@@ -112,10 +103,14 @@ export const DashboardPage = () => {
 
       {/* Recent Transactions */}
       <div className="bg-white shadow rounded-xl p-6">
-        <h2 className="text-lg font-semibold mb-4">Recent Transactions</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          Recent Transactions
+        </h2>
 
         {recentTransactions.length === 0 ? (
-          <p className="text-gray-500">No recent transactions found.</p>
+          <p className="text-gray-500">
+            No recent transactions found.
+          </p>
         ) : (
           <div className="space-y-4">
             {recentTransactions.map((transaction) => (
@@ -124,9 +119,13 @@ export const DashboardPage = () => {
                 className="flex justify-between items-center border-b pb-2"
               >
                 <div>
-                  <p className="font-medium">{transaction.title}</p>
+                  <p className="font-medium">
+                    {transaction.title}
+                  </p>
                   <p className="text-sm text-gray-400">
-                    {new Date(transaction.date).toLocaleDateString()}
+                    {new Date(
+                      transaction.date
+                    ).toLocaleDateString()}
                   </p>
                 </div>
 
