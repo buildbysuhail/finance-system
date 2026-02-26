@@ -19,6 +19,9 @@ export const TransactionsPage = () => {
   const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "income" | "expense">("all");
 
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -55,7 +58,7 @@ export const TransactionsPage = () => {
     reset();
     setIsModalOpen(true);
   };
-
+console.log(loading, "loadingggggggg")
   const openEditModal = (transaction: Transaction) => {
     setEditingId(transaction.id);
     reset(transaction);
@@ -68,9 +71,22 @@ export const TransactionsPage = () => {
     reset();
   };
 
-  const filteredTransactions = transactions.filter((t) =>
-    filterType === "all" ? true : t.type === filterType
-  );
+  const filteredTransactions = transactions.filter((t) => {
+  const typeMatch = filterType === "all" ? true : t.type === filterType;
+  
+  let dateMatch = true;
+  if (filterDateFrom || filterDateTo) {
+    const transactionDate = new Date(t.date);
+    if (filterDateFrom) {
+      dateMatch = dateMatch && transactionDate >= new Date(filterDateFrom);
+    }
+    if (filterDateTo) {
+      dateMatch = dateMatch && transactionDate <= new Date(filterDateTo);
+    }
+  }
+  
+  return typeMatch && dateMatch;
+});
 
   const onSubmit = async (data: Omit<Transaction, "id">) => {
     try {
@@ -122,8 +138,24 @@ export const TransactionsPage = () => {
         {/* Filter Buttons */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">Transaction List</h2>
-          
-          <div className="flex gap-2">
+
+          <div className="flex gap-3 items-center">
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              placeholder="From"
+            />
+            <span className="text-gray-500">to</span>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              placeholder="To"
+            />
+
             <button
               onClick={() => setFilterType("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
@@ -155,6 +187,19 @@ export const TransactionsPage = () => {
               Expense
             </button>
           </div>
+
+               {/* Clear Filters */}
+    <button
+      onClick={() => {
+        setFilterDateFrom("");
+        setFilterDateTo("");
+        setFilterType("all");
+      }}
+      className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+    >
+      Clear
+    </button>
+
         </div>
 
         {loading ? (
@@ -184,7 +229,9 @@ export const TransactionsPage = () => {
                   >
                     <td className="py-2">{t.title}</td>
 
-                    <td className="py-2 font-medium">₹{t.amount.toLocaleString("en-IN")}</td>
+                    <td className="py-2 font-medium">
+                      ₹{t.amount.toLocaleString("en-IN")}
+                    </td>
 
                     <td
                       className={`py-2 font-medium capitalize ${
@@ -273,9 +320,7 @@ export const TransactionsPage = () => {
               <option value="expense">Expense</option>
             </select>
             {errors.type && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.type.message}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
             )}
           </div>
 
@@ -286,9 +331,7 @@ export const TransactionsPage = () => {
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
             {errors.date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.date.message}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
             )}
           </div>
 
@@ -304,7 +347,7 @@ export const TransactionsPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition cursor-pointer"
+              className={`px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition ${loading ? 'cursor-not-allowed': 'cursor-pointer'} `}
             >
               Cancel
             </button>
@@ -312,7 +355,8 @@ export const TransactionsPage = () => {
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium cursor-pointer"
+              className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium ${loading ? 'cursor-not-allowed': 'cursor-pointer'}`}
+              disabled={loading}
             >
               {editingId ? "Update" : "Add"}
             </button>
@@ -331,6 +375,7 @@ export const TransactionsPage = () => {
           setIsDeleteOpen(false);
           setDeleteId(null);
         }}
+        loading={loading}
       />
     </div>
   );

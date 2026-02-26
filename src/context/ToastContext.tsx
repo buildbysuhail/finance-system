@@ -8,6 +8,7 @@ interface ToastItem {
   id: string;
   message: string;
   type: ToastType;
+  isClosing?: boolean;
 }
 
 interface ToastContextProps {
@@ -32,15 +33,29 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     const id = Date.now().toString();
 
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type, isClosing: false }]);
 
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
+      // Mark as closing to trigger exit animation
+      setToasts((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, isClosing: true } : t))
+      );
+
+      // Remove after animation completes (600ms)
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 600);
     }, duration);
   };
 
   const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, isClosing: true } : t))
+    );
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 600);
   };
 
   return (
@@ -48,13 +63,51 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       {/* Toast Container */}
-      <div className="fixed top-7 left-1/2 -translate-x-1/2 -translate-y-1/2 space-y-3 z-50">
+      <style>{`
+        @keyframes slideInDown {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+
+        @keyframes slideOutUp {
+          from {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+          to {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+          }
+        }
+
+        .toast-enter {
+          animation: slideInDown 0.6s ease-out forwards;
+        }
+
+        .toast-exit {
+          animation: slideOutUp 0.6s ease-in forwards;
+        }
+      `}</style>
+
+      <div className="fixed top-7 left-1/2 space-y-3 z-50">
         {toasts.map((toast) => (
-          <Toast
+          <div
             key={toast.id}
-            {...toast}
-            onClose={removeToast}
-          />
+            className={toast.isClosing ? "toast-exit" : "toast-enter"}
+          >
+            <Toast
+              id={toast.id}
+              message={toast.message}
+              type={toast.type}
+              onClose={removeToast}
+            />
+          </div>
         ))}
       </div>
     </ToastContext.Provider>
