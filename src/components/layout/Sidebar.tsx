@@ -88,7 +88,7 @@ export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
       
       <ConfirmModal
         isOpen={logoutPopup}
-        title="Logout the user"
+        title="Logout the user!"
         message="Are you sure you want to logout this account? This action cannot be undone."
         confirmText="Yes"
         cancelText="Cancel"

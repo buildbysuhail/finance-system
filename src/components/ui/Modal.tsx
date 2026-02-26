@@ -43,7 +43,7 @@ export const Modal = ({
       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-lg p-6 z-10">
         {title && (
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">{title}</h2>
+            <h2 className="text-lg font-semibold text-black w-full text-center">{title}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-black hover:cursor-pointer"
