@@ -19,7 +19,7 @@ export const ConfirmModal = ({
   cancelText = "Cancel",
   onConfirm,
   onCancel,
-  loading=false
+  loading
 }: ConfirmModalProps) => {
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={title}>

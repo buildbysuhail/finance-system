@@ -97,6 +97,7 @@ export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
           setLogoutPopup(false);
           // setDeleteId(null);
         }}
+        loading={false}
       />
     </aside>
   )

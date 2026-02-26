@@ -16,12 +16,12 @@ import { getCategories, type Category } from "@/services/categoryService";
 import { calculateSummary } from "@/services/reportService";
 import { Calendar, Filter, TrendingUp, TrendingDown } from "lucide-react";
 
-interface Summary {
-  totalIncome: number;
-  totalExpense: number;
-  balance: number;
-  transactionCount: number;
-}
+// interface Summary {
+//   totalIncome: number;
+//   totalExpense: number;
+//   balance: number;
+//   transactionCount: number;
+// }
 
 interface MonthlySummary {
   month: string;
@@ -30,12 +30,12 @@ interface MonthlySummary {
   balance: number;
 }
 
-interface CategoryData {
-  category: string;
-  income: number;
-  expense: number;
-  total: number;
-}
+// interface CategoryData {
+//   category: string;
+//   income: number;
+//   expense: number;
+//   total: number;
+// }
 
 interface PieData {
   name: string;
@@ -46,8 +46,8 @@ interface PieData {
 const EXPENSE_COLORS = ["#ef4444", "#f87171", "#fca5a5", "#fecaca", "#fee2e2"];
 const INCOME_COLORS = ["#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"];
 
-const COLORS_PIE = ["#10b981", "#ef4444"];
-const COLORS_CHART = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#06b6d4"];
+// const COLORS_PIE = ["#10b981", "#ef4444"];
+// const COLORS_CHART = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#06b6d4"];
 
 export const ReportsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -84,11 +84,11 @@ export const ReportsPage = () => {
   }, []);
 console.log(transactions, "transactionsssssss")
   // Get available months from transactions
-  const getCategoryName = (categoryId?: string) => {
-    if (!categoryId) return "Uncategorized";
-    const category = categories.find(c => c.id === categoryId);
-    return category?.name || "Uncategorized";
-  };
+  // const getCategoryName = (categoryId?: string) => {
+  //   if (!categoryId) return "Uncategorized";
+  //   const category = categories.find(c => c.id === categoryId);
+  //   return category?.name || "Uncategorized";
+  // };
 
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
@@ -213,7 +213,7 @@ console.log(filteredTransactions, "filteredTransactionsss")
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
