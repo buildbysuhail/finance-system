@@ -104,6 +104,7 @@ export const TransactionsPage = () => {
 
   const onSubmit = async (data: Omit<Transaction, "id">) => {
     try {
+      setLoading(true)
       if (editingId) {
         await updateTransaction(editingId, data);
         showToast("Transaction updated successfully", "success");
@@ -116,6 +117,8 @@ export const TransactionsPage = () => {
       await loadTransactions();
     } catch (error) {
       // Error handling
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -152,7 +155,7 @@ export const TransactionsPage = () => {
         {/* Filter Buttons */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">Transaction List</h2>
-          
+
           <div className="flex gap-2">
             <button
               onClick={() => setFilterType("all")}
@@ -214,7 +217,9 @@ export const TransactionsPage = () => {
                   >
                     <td className="py-2">{t.title}</td>
 
-                    <td className="py-2 font-medium">₹{t.amount.toLocaleString("en-IN")}</td>
+                    <td className="py-2 font-medium">
+                      ₹{t.amount.toLocaleString("en-IN")}
+                    </td>
 
                     <td
                       className={`py-2 font-medium capitalize ${
@@ -276,9 +281,7 @@ export const TransactionsPage = () => {
               <option value="expense">Expense</option>
             </select>
             {errors.type && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.type.message}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
             )}
           </div>
 
@@ -327,12 +330,11 @@ export const TransactionsPage = () => {
             <input
               type="date"
               {...register("date", { required: "Date is required" })}
+              max={new Date().toISOString().split("T")[0]}
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
             {errors.date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.date.message}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
             )}
           </div>
 
@@ -358,7 +360,8 @@ export const TransactionsPage = () => {
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium cursor-pointer"
+              className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium ${ loading ? 'cursor-not-allowed' :'cursor-pointer'}`}
+              disabled={loading}
             >
               {editingId ? "Update" : "Add"}
             </button>
