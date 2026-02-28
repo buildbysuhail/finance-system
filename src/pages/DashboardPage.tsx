@@ -10,7 +10,6 @@ import {
   Coffee,
   Home,
   Heart,
-  // MoreVertical,
 } from "lucide-react";
 
 interface Summary {
@@ -19,15 +18,6 @@ interface Summary {
   balance: number;
   transactionCount: number;
 }
-
-// interface Transaction {
-//   id: string;
-//   title: string;
-//   amount: number;
-//   type: "income" | "expense";
-//   date: string;
-//   categoryId?: string;
-// }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   shopping: <ShoppingCart className="w-5 h-5" />,
@@ -50,26 +40,19 @@ export const DashboardPage = () => {
     transactionCount: 0,
   });
 
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterTransactionType, setFilterTransactionType] = useState<"all" | "income" | "expense">("all");
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const transactions: Transaction[] = await getTransactions();
-
-        setSummary(calculateSummary(transactions));
-
-        const sortedRecent = [...transactions]
-          .sort(
-            (a, b) =>
-              new Date(b.date).getTime() - new Date(a.date).getTime()
-          )
-          .slice(0, 8);
-
-        setRecentTransactions(sortedRecent);
+        const transactionsData: Transaction[] = await getTransactions();
+        setTransactions(transactionsData);
+        setSummary(calculateSummary(transactionsData));
       } catch (error) {
-        console.error("Failed to load dashboard data", error);
+        // Error handling
       } finally {
         setLoading(false);
       }
@@ -77,6 +60,22 @@ export const DashboardPage = () => {
 
     loadDashboardData();
   }, []);
+
+  // Update recentTransactions whenever filterTransactionType changes
+  useEffect(() => {
+    let filtered = [...transactions]
+      .filter((t) =>
+        filterTransactionType === "all" ? true : t.type === filterTransactionType
+      )
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Only slice if no type filter is active
+    if (filterTransactionType === "all") {
+      filtered = filtered.slice(0, 8);
+    }
+
+    setRecentTransactions(filtered);
+  }, [transactions, filterTransactionType]);
 
   if (loading) {
     return (
@@ -141,8 +140,15 @@ export const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Income Card */}
-          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+          {/* Income Card - Clickable Filter */}
+          <div
+            onClick={() => setFilterTransactionType(filterTransactionType === "income" ? "all" : "income")}
+            className={`bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-all border cursor-pointer ${
+              filterTransactionType === "income"
+                ? "border-green-500 bg-green-50"
+                : "border-gray-100 hover:border-green-300"
+            }`}
+          >
             <div className="flex items-center justify-between mb-4">
               <p className="text-gray-600 text-sm font-medium">Total Income</p>
               <div className="p-2 bg-green-100 rounded-lg">
@@ -153,12 +159,21 @@ export const DashboardPage = () => {
               ₹ {summary.totalIncome.toLocaleString("en-IN")}
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              {summary.transactionCount} transactions
+              {filterTransactionType === "income"
+                ? "Click to clear filter"
+                : "Click to filter by income"}
             </p>
           </div>
 
-          {/* Expense Card */}
-          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+          {/* Expense Card - Clickable Filter */}
+          <div
+            onClick={() => setFilterTransactionType(filterTransactionType === "expense" ? "all" : "expense")}
+            className={`bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-all border cursor-pointer ${
+              filterTransactionType === "expense"
+                ? "border-red-500 bg-red-50"
+                : "border-gray-100 hover:border-red-300"
+            }`}
+          >
             <div className="flex items-center justify-between mb-4">
               <p className="text-gray-600 text-sm font-medium">Total Expense</p>
               <div className="p-2 bg-red-100 rounded-lg">
@@ -169,7 +184,9 @@ export const DashboardPage = () => {
               ₹ {summary.totalExpense.toLocaleString("en-IN")}
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              {expensePercentage.toFixed(1)}% of income
+              {filterTransactionType === "expense"
+                ? "Click to clear filter"
+                : "Click to filter by expense"}
             </p>
           </div>
         </div>
@@ -180,11 +197,25 @@ export const DashboardPage = () => {
             <div>
               <h3 className="text-2xl font-bold text-gray-900">
                 Recent Transactions
+                {filterTransactionType !== "all" && (
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    ({filterTransactionType})
+                  </span>
+                )}
               </h3>
               <p className="text-gray-600 text-sm mt-1">
                 Your latest financial activity
               </p>
             </div>
+
+            {filterTransactionType !== "all" && (
+              <button
+                onClick={() => setFilterTransactionType("all")}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer"
+              >
+                Clear Filter
+              </button>
+            )}
           </div>
 
           {recentTransactions.length === 0 ? (
@@ -232,7 +263,7 @@ export const DashboardPage = () => {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
-                            },
+                            }
                           )}
                         </p>
                       </div>
