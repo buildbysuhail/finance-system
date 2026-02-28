@@ -14,16 +14,36 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useToast } from "@/context/ToastContext";
 
+interface Category {
+  name: string;
+  type: "income" | "expense";
+}
+
+const DEFAULT_CATEGORIES: Category[] = [
+  { name: "Salary", type: "income" },
+  { name: "Freelance", type: "income" },
+  { name: "Petty Cash", type: "income" },
+  { name: "Other Income", type: "income" },
+
+  { name: "Food & Dining", type: "expense" },
+  { name: "Rent", type: "expense" },
+  { name: "Utilities", type: "expense" },
+  { name: "Transportation", type: "expense" },
+  { name: "Shopping", type: "expense" },
+  { name: "Entertainment", type: "expense" },
+  { name: "Healthcare", type: "expense" },
+  { name: "Education", type: "expense" },
+  { name: "Other Expense", type: "expense" },
+];
+
 export const TransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "income" | "expense">("all");
 
-  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
-  const [filterDateTo, setFilterDateTo] = useState<string>("");
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<"income" | "expense">("expense");
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -53,14 +73,21 @@ export const TransactionsPage = () => {
     loadTransactions();
   }, []);
 
+  // Filter categories based on selected type
+  const filteredCategories = DEFAULT_CATEGORIES.filter(
+    (cat) => cat.type === selectedType
+  );
+
   const openCreateModal = () => {
     setEditingId(null);
+    setSelectedType("expense");
     reset();
     setIsModalOpen(true);
   };
-console.log(loading, "loadingggggggg")
+// console.log(loading, "loadingggggggg")
   const openEditModal = (transaction: Transaction) => {
     setEditingId(transaction.id);
+    setSelectedType(transaction.type);
     reset(transaction);
     setIsModalOpen(true);
   };
@@ -71,22 +98,9 @@ console.log(loading, "loadingggggggg")
     reset();
   };
 
-  const filteredTransactions = transactions.filter((t) => {
-  const typeMatch = filterType === "all" ? true : t.type === filterType;
-  
-  let dateMatch = true;
-  if (filterDateFrom || filterDateTo) {
-    const transactionDate = new Date(t.date);
-    if (filterDateFrom) {
-      dateMatch = dateMatch && transactionDate >= new Date(filterDateFrom);
-    }
-    if (filterDateTo) {
-      dateMatch = dateMatch && transactionDate <= new Date(filterDateTo);
-    }
-  }
-  
-  return typeMatch && dateMatch;
-});
+  const filteredTransactions = transactions.filter((t) =>
+    filterType === "all" ? true : t.type === filterType
+  );
 
   const onSubmit = async (data: Omit<Transaction, "id">) => {
     try {
@@ -138,24 +152,8 @@ console.log(loading, "loadingggggggg")
         {/* Filter Buttons */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">Transaction List</h2>
-
-          <div className="flex gap-3 items-center">
-            <input
-              type="date"
-              value={filterDateFrom}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              placeholder="From"
-            />
-            <span className="text-gray-500">to</span>
-            <input
-              type="date"
-              value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              placeholder="To"
-            />
-
+          
+          <div className="flex gap-2">
             <button
               onClick={() => setFilterType("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
@@ -187,19 +185,6 @@ console.log(loading, "loadingggggggg")
               Expense
             </button>
           </div>
-
-               {/* Clear Filters */}
-    <button
-      onClick={() => {
-        setFilterDateFrom("");
-        setFilterDateTo("");
-        setFilterType("all");
-      }}
-      className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
-    >
-      Clear
-    </button>
-
         </div>
 
         {loading ? (
@@ -229,9 +214,7 @@ console.log(loading, "loadingggggggg")
                   >
                     <td className="py-2">{t.title}</td>
 
-                    <td className="py-2 font-medium">
-                      ₹{t.amount.toLocaleString("en-IN")}
-                    </td>
+                    <td className="py-2 font-medium">₹{t.amount.toLocaleString("en-IN")}</td>
 
                     <td
                       className={`py-2 font-medium capitalize ${
@@ -279,12 +262,40 @@ console.log(loading, "loadingggggggg")
           onSubmit={handleSubmit(onSubmit)}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
+          {/* Type Dropdown */}
           <div>
-            <input
-              placeholder="Title"
-              {...register("title", { required: "Title is required" })}
+            <select
+              {...register("type", { required: "Type is required" })}
+              value={selectedType}
+              onChange={(e) => {
+                setSelectedType(e.target.value as "income" | "expense");
+              }}
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            {errors.type && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.type.message}
+              </p>
+            )}
+          </div>
+
+          {/* Category Dropdown - Filtered by Type */}
+          <div>
+            <select
+              {...register("title", { required: "Category is required" })}
+              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              defaultValue=""
+            >
+              <option value="">Select Category</option>
+              {filteredCategories.map((cat) => (
+                <option key={cat.name} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
             {errors.title && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.title.message}
@@ -292,6 +303,7 @@ console.log(loading, "loadingggggggg")
             )}
           </div>
 
+          {/* Amount */}
           <div>
             <input
               type="number"
@@ -310,20 +322,7 @@ console.log(loading, "loadingggggggg")
             )}
           </div>
 
-          <div>
-            <select
-              {...register("type", { required: "Type is required" })}
-              className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Select Type</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
-            {errors.type && (
-              <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
-            )}
-          </div>
-
+          {/* Date */}
           <div>
             <input
               type="date"
@@ -331,10 +330,13 @@ console.log(loading, "loadingggggggg")
               className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
             {errors.date && (
-              <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.date.message}
+              </p>
             )}
           </div>
 
+          {/* Description */}
           <div className="md:col-span-2">
             <textarea
               placeholder="Description (optional)"
@@ -343,11 +345,12 @@ console.log(loading, "loadingggggggg")
             />
           </div>
 
+          {/* Buttons */}
           <div className="md:col-span-2 flex justify-end space-x-3">
             <button
               type="button"
               onClick={closeModal}
-              className={`px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition ${loading ? 'cursor-not-allowed': 'cursor-pointer'} `}
+              className="px-5 py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -355,8 +358,7 @@ console.log(loading, "loadingggggggg")
 
             <button
               type="submit"
-              className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium ${loading ? 'cursor-not-allowed': 'cursor-pointer'}`}
-              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-medium cursor-pointer"
             >
               {editingId ? "Update" : "Add"}
             </button>
@@ -375,7 +377,7 @@ console.log(loading, "loadingggggggg")
           setIsDeleteOpen(false);
           setDeleteId(null);
         }}
-        loading={loading}
+        loading
       />
     </div>
   );
